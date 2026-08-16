@@ -1,0 +1,9 @@
+{
+  "incident_id": "incident_001",
+  "service": "order_service",
+  "symptom": "GET /orders/1 returns HTTP 500",
+  "error": "sqlite3.OperationalError: no such column: orders.customer_email",
+  "root_cause": "The SQLAlchemy Order model expects the customer_email column, but the existing SQLite orders table does not contain that column.",
+  "root_cause_category": "database_schema_mismatch",
+  "expected_fix": "Apply a database schema migration to add the customer_email column to the orders table."
+}

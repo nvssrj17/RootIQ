@@ -6,6 +6,6 @@ class Order(Base):
 
     id = Column(Integer, primary_key = True, index = True)
     customer_name = Column(String, nullable = False)
+    customer_email = Column(String, nullable=False)
     product = Column(String, nullable = False)
     status = Column(String, default = "pending")
-    

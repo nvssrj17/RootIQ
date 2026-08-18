@@ -1,11 +1,14 @@
 {
+  "incident_id": "incident_002",
+  "service": "order_service",
+  "symptom": "GET /orders/1 returns HTTP 500 because the notification request fails",
+  "error": "ConnectionError: HTTPConnectionPool(host='localhost', port=9999): Max retries exceeded with url: /notify",
   "root_cause": "The notification service endpoint was incorrectly configured as localhost:9999/notify, where no notification service was running, causing connection refused errors.",
-  "category": "Configuration / External Service Failure",
-  "affected_component": "Notification Service",
+  "root_cause_category": "notification_service_configuration",
+  "expected_fix": "Configure NOTIFICATION_URL to point to the correct reachable notification service endpoint and verify the service is available before deployment.",
   "expected_files": [
     "notification.py",
     "orders.py",
     "main.py"
-  ],
-  "recommended_fix": "Configure NOTIFICATION_URL to point to the correct reachable notification service endpoint and verify the service is available before deployment."
+  ]
 }

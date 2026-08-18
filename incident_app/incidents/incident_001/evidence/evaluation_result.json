@@ -1,0 +1,7 @@
+{
+  "incident_id": "incident_001",
+  "root_cause_correct": true,
+  "fix_correct": true,
+  "files_correct": null,
+  "score": 1.0
+}

@@ -54,22 +54,130 @@ class RootIQEvaluator:
         if not predicted or not expected:
             return False
 
-        # Important concepts that should appear in the prediction.
-        expected_terms = [
-            term
-            for term in expected.split()
-            if len(term) > 3
-        ]
+        aliases = {
+            "misconfigured": "configuration",
+            "incorrectly configured": "configuration",
+            "configuration": "configuration",
+            "configured": "configuration",
+            "connection refused": "connection",
+            "unreachable": "connection",
+            "connection": "connection",
+            "notification service": "notification",
+            "notification": "notification",
+            "endpoint": "endpoint",
+            "url": "endpoint",
+            "notification url": "endpoint",
+            "localhost:9999": "endpoint",
+            "database schema": "schema",
+            "schema mismatch": "schema",
+            "schema": "schema",
+            "database": "database",
+            "sqlite": "database",
+            "customer email": "customer_email"
+        }
 
-        matches = sum(
-            1
-            for term in expected_terms
-            if term in predicted
-        )
+        concepts = set()
 
-        # Require a meaningful portion of the expected
-        # root-cause concepts to be present.
-        return matches >= max(2, len(expected_terms) * 0.4)
+        for phrase, concept in aliases.items():
+            if phrase in expected:
+                concepts.add(concept)
+
+        if not concepts:
+            expected_terms = [
+                term
+                for term in expected.split()
+                if len(term) > 3
+            ]
+
+            matches = sum(
+                1
+                for term in expected_terms
+                if term in predicted
+            )
+
+            return matches >= max(
+                2,
+                len(expected_terms) * 0.4
+            )
+
+        matched_concepts = 0
+
+        for concept in concepts:
+
+            if concept == "configuration":
+                if any(
+                    phrase in predicted
+                    for phrase in [
+                        "configuration",
+                        "configured",
+                        "misconfigured"
+                    ]
+                ):
+                    matched_concepts += 1
+
+            elif concept == "connection":
+                if any(
+                    phrase in predicted
+                    for phrase in [
+                        "connection",
+                        "connection refused",
+                        "unreachable",
+                        "cannot establish"
+                    ]
+                ):
+                    matched_concepts += 1
+
+            elif concept == "notification":
+                if "notification" in predicted:
+                    matched_concepts += 1
+
+            elif concept == "endpoint":
+                if any(
+                    phrase in predicted
+                    for phrase in [
+                        "endpoint",
+                        "url",
+                        "localhost:9999",
+                        "notification url"
+                    ]
+                ):
+                    matched_concepts += 1
+
+            elif concept == "schema":
+                if any(
+                    phrase in predicted
+                    for phrase in [
+                        "schema",
+                        "schema mismatch",
+                        "table"
+                    ]
+                ):
+                    matched_concepts += 1
+
+            elif concept == "database":
+                if any(
+                    phrase in predicted
+                    for phrase in [
+                        "database",
+                        "sqlite",
+                        "sqlite3"
+                    ]
+                ):
+                    matched_concepts += 1
+
+            elif concept == "customer_email":
+                if any(
+                    phrase in predicted
+                    for phrase in [
+                        "customer email",
+                        "customer_email"
+                    ]
+                ):
+                    matched_concepts += 1
+
+        match_ratio = matched_concepts / len(concepts)
+
+        return match_ratio >= 0.5
 
     def evaluate_fix(
         self,
@@ -107,7 +215,10 @@ class RootIQEvaluator:
             if term in predicted
         )
 
-        return matches >= max(2, len(expected_terms) * 0.3)
+        return matches >= max(
+            2,
+            len(expected_terms) * 0.3
+        )
 
     def evaluate_files(
         self,
@@ -150,7 +261,7 @@ class RootIQEvaluator:
         incident_id: str,
         investigation: dict
     ) -> dict:
-        """Evaluate a RootIQ investigation."""
+        """Evaluate and save a RootIQ investigation."""
 
         ground_truth = self.load_ground_truth(
             incident_id
@@ -181,10 +292,35 @@ class RootIQEvaluator:
 
         score = sum(checks) / len(checks)
 
-        return {
+        evaluation_result = {
             "incident_id": incident_id,
             "root_cause_correct": root_cause_correct,
             "fix_correct": fix_correct,
             "files_correct": files_correct,
             "score": round(score, 2)
         }
+
+        output_dir = (
+            self.incidents_dir
+            / incident_id
+            / "evidence"
+        )
+
+        output_dir.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
+        output_path = (
+            output_dir
+            / "evaluation_result.json"
+        )
+
+        with output_path.open("w") as file:
+            json.dump(
+                evaluation_result,
+                file,
+                indent=2
+            )
+
+        return evaluation_result

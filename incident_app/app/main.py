@@ -3,6 +3,9 @@ from fastapi import FastAPI
 
 from .database import Base, engine
 from .orders import router as orders_router
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(
     filename="logs/application.log",

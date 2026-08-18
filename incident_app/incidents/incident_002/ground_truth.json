@@ -1,0 +1,11 @@
+{
+  "root_cause": "The notification service endpoint was incorrectly configured as localhost:9999/notify, where no notification service was running, causing connection refused errors.",
+  "category": "Configuration / External Service Failure",
+  "affected_component": "Notification Service",
+  "expected_files": [
+    "notification.py",
+    "orders.py",
+    "main.py"
+  ],
+  "recommended_fix": "Configure NOTIFICATION_URL to point to the correct reachable notification service endpoint and verify the service is available before deployment."
+}

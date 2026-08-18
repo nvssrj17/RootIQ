@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
+from .notification import send_order_notification
 from .database import get_db
 from .models import Order
 
@@ -18,7 +18,7 @@ def get_order(
     db: Session = Depends(get_db)
 ):
     logger.info("Fetching order %s", order_id)
-
+    
     try:
         order = db.query(Order).filter(
             Order.id == order_id
@@ -36,7 +36,18 @@ def get_order(
             "Successfully retrieved order %s",
             order_id
         )
+        notification_sent = send_order_notification(order_id)
 
+        if not notification_sent:
+            logger.error(
+                "Order %s retrieved but notification failed",
+                order_id
+            )
+
+            raise HTTPException(
+                status_code=500,
+                detail="Notification service unavailable"
+            )
         return {
             "id": order.id,
             "customer_name": order.customer_name,

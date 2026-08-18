@@ -25,8 +25,17 @@ class EvidenceCollector:
 
         return readme_path.read_text()
 
-    def collect_logs(self) -> str:
-        """Collect application logs."""
+    def collect_logs(self, incident_id: str) -> str:
+        """Collect logs specific to the incident."""
+
+        incident_log = (
+            self.incidents_dir
+            / incident_id
+            / "application.log"
+        )
+
+        if incident_log.exists():
+            return incident_log.read_text()
 
         log_path = self.logs_dir / "application.log"
 
@@ -69,7 +78,7 @@ class EvidenceCollector:
         return {
             "incident_id": incident_id,
             "incident": self.collect_incident_metadata(incident_id),
-            "logs": self.collect_logs(),
+            "logs": self.collect_logs(incident_id),
             "source_code": self.collect_source_code(),
             "git_history": self.collect_git_history()
         }

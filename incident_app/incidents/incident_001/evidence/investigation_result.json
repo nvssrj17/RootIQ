@@ -1,10 +1,11 @@
 {
-  "summary": "Order retrieval fails due to a missing column in the SQLite database.",
-  "root_cause": "Database schema mismatch \u2013 the `orders` table in the SQLite database does not contain the `customer_email` column that the application expects.",
+  "summary": "Order retrieval fails due to missing `customer_email` column in the SQLite database.",
+  "root_cause": "Database schema mismatch \u2013 the `orders` table in the existing database does not contain the `customer_email` column that the application expects.",
   "evidence": [
     "Application log shows `sqlite3.OperationalError: no such column: orders.customer_email` when querying the orders table.",
-    "The `models.py` file defines `customer_email = Column(String, nullable=False)` but the database schema was not updated to include this column.",
-    "Git history contains a commit titled \"Add incident 001 database schema mismatch\" indicating a known schema issue."
+    "Source code `models.py` defines `customer_email = Column(String, nullable=False)` but the database schema was not updated to include this column.",
+    "Git history contains a commit titled \"Add incident 001 database schema mismatch\" indicating a known schema issue.",
+    "The query in `orders.py` selects `orders.customer_email`, which triggers the error."
   ],
   "files_involved": [
     "models.py",
@@ -12,6 +13,6 @@
     "database.py",
     "main.py"
   ],
-  "recommended_fix": "Synchronize the database schema with the model definition. Run a migration or execute `Base.metadata.create_all(bind=engine)` after ensuring the database file is fresh, or manually add the `customer_email` column to the existing `orders` table. Consider using a migration tool (e.g., Alembic) to manage schema changes reliably.",
+  "recommended_fix": "Synchronize the database schema with the model definition. The simplest fix is to delete the existing `incident.db` file and let `Base.metadata.create_all(bind=engine)` recreate the tables, or run a proper migration (e.g., Alembic) to add the missing `customer_email` column. Ensure that the database is recreated or migrated whenever the model changes.",
   "confidence": 0.95
 }

@@ -1,15 +1,15 @@
 {
-  "summary": "Order creation succeeds but notification step fails due to a connection error to the external notification service, causing HTTP 500 responses.",
-  "root_cause": "The NOTIFICATION_URL environment variable points to an endpoint (localhost:9999) where no notification service is listening, likely due to a recent configuration change.",
+  "summary": "Order notification service call fails after configuration change, causing HTTP 500 responses.",
+  "root_cause": "The NOTIFICATION_URL environment variable was misconfigured to point to a non\u2011existent service (localhost:9999), leading to connection refusals when the application attempts to POST notifications.",
   "evidence": [
-    "Log entry: \"requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=9999): Max retries exceeded with url: /notify (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=9999): Failed to establish a new connection: [Errno 61] Connection refused\"))\"",
-    "Code in notification.py that uses os.getenv(\"NOTIFICATION_URL\") and attempts a POST to that URL, returning False on any RequestException."
+    "Log entry: \"requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=9999): Max retries exceeded with url: /notify\"",
+    "Code in notification.py uses os.getenv(\"NOTIFICATION_URL\") and posts to that URL, returning False on RequestException."
   ],
   "files_involved": [
     "notification.py",
     "orders.py",
     "main.py"
   ],
-  "recommended_fix": "Verify that the notification service is running and listening on the host/port specified by NOTIFICATION_URL. Update the environment variable to the correct URL (e.g., http://localhost:8000/notify) or ensure the service is reachable. Add a health\u2011check or retry logic if the service may be temporarily unavailable.",
+  "recommended_fix": "Update the NOTIFICATION_URL environment variable to the correct notification service endpoint (e.g., https://notify.example.com/notify) and ensure the service is reachable. Add validation or fallback logic to handle missing or unreachable URLs gracefully.",
   "confidence": 0.9
 }

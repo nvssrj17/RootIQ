@@ -55,22 +55,27 @@ class EvidenceCollector:
         return evidence
 
     def collect_git_history(self) -> str:
-        """Collect recent Git history."""
+        """Collect recent Git history when Git is available."""
 
-        result = subprocess.run(
-            [
-                "git",
-                "log",
-                "--oneline",
-                "-10"
-            ],
-            cwd=self.project_root,
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        try:
+            result = subprocess.run(
+                [
+                    "git",
+                    "log",
+                    "--oneline",
+                    "-10"
+                ],
+                cwd=self.project_root,
+                capture_output=True,
+                text=True,
+                check=True
+            )
 
-        return result.stdout
+            return result.stdout
+
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            return "Git history unavailable in this deployment environment."
+
 
     def collect(self, incident_id: str) -> dict:
         """Collect all available investigation evidence."""

@@ -18,6 +18,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.get("/")
+def root():
+    return {
+        "service": "RootIQ",
+        "description": "Evidence-driven AI incident investigation service",
+        "status": "online",
+        "docs": "/docs",
+        "health": "/health"
+    }
 
 @app.get("/health")
 def health_check():

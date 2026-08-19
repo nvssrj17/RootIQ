@@ -597,21 +597,126 @@ For deployment, environment variables should be configured through the hosting p
 
 # Deployment
 
-RootIQ includes a `render.yaml` deployment configuration for deploying the FastAPI service.
+**Live Vercel Deployment**
 
-The production service runs using:
+RootIQ is deployed as a live FastAPI application on Vercel.
 
-```bash
-uvicorn rootiq.api:app --host 0.0.0.0 --port $PORT
-```
+Production API
 
-The deployment environment should provide:
+Live API:
+https://rootiq-ai.vercel.app
 
-```text
+Interactive API Documentation:
+https://rootiq-ai.vercel.app/docs
+
+Health Check:
+https://rootiq-ai.vercel.app/health
+
+GitHub Repository:
+https://github.com/nvssrj17/RootIQ
+
+Production Investigation
+
+curl -X POST https://rootiq-ai.vercel.app/investigate/incident_001
+
+or:
+
+curl -X POST https://rootiq-ai.vercel.app/investigate/incident_002
+
+**Vercel Deployment Configuration**
+
+The Vercel configuration is defined in:
+
+incident_app/vercel.json
+
+The application uses the Vercel Python runtime to expose the FastAPI application.
+
+The deployed API provides:
+
+GET  /
+GET  /health
+POST /investigate/{incident_id}
+
+**Environment Variables**
+
+RootIQ requires:
+
 GROQ_API_KEY
-```
 
-The local `.env`, SQLite database, logs, and virtual environment are excluded from Git through `.gitignore`.
+For local development, the key can be stored in:
+
+.env
+
+For production, the key is configured through Vercel environment-variable management.
+
+Secrets are not committed to the repository.
+
+**Vercel Deployment Considerations**
+
+During deployment, two differences between the local environment and Vercel's serverless runtime were identified.
+
+**Git Availability**
+
+The local implementation can execute:
+
+git log --oneline -10
+
+to collect recent Git history.
+
+The Vercel runtime does not provide the local Git executable in the same way.
+
+RootIQ was therefore designed so Git history is optional evidence.
+
+Local Environment
+       ↓
+Git Available
+       ↓
+Git History Included
+
+while:
+
+Vercel
+   ↓
+Git Unavailable
+   ↓
+Investigation Continues
+
+The absence of Git no longer causes the entire investigation to fail.
+
+**Read-Only Filesystem**
+
+Locally, RootIQ can save:
+
+investigation_result.json
+evaluation_result.json
+
+inside the incident evidence directory.
+
+Vercel's deployed serverless filesystem is read-only, so attempting to write these files caused runtime failures.
+
+RootIQ was adapted so that:
+
+Local Environment
+    ↓
+Investigate
+    ↓
+Evaluate
+    ↓
+Save JSON artifacts
+    ↓
+Return result
+
+while on Vercel:
+
+Vercel
+   ↓
+Investigate
+   ↓
+Evaluate
+   ↓
+Return JSON response
+
+The investigation and evaluation logic remains the same; only filesystem persistence is environment-dependent.
 
 ---
 

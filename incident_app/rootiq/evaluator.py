@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 
@@ -300,27 +301,29 @@ class RootIQEvaluator:
             "score": round(score, 2)
         }
 
-        output_dir = (
-            self.incidents_dir
-            / incident_id
-            / "evidence"
-        )
-
-        output_dir.mkdir(
-            parents=True,
-            exist_ok=True
-        )
-
-        output_path = (
-            output_dir
-            / "evaluation_result.json"
-        )
-
-        with output_path.open("w") as file:
-            json.dump(
-                evaluation_result,
-                file,
-                indent=2
+        # Save evaluation result only in writable environments.
+        if os.getenv("VERCEL") != "1":
+            output_dir = (
+                self.incidents_dir
+                / incident_id
+                / "evidence"
             )
+
+            output_dir.mkdir(
+                parents=True,
+                exist_ok=True
+            )
+
+            output_path = (
+                output_dir
+                / "evaluation_result.json"
+            )
+
+            with output_path.open("w") as file:
+                json.dump(
+                    evaluation_result,
+                    file,
+                    indent=2
+                )
 
         return evaluation_result

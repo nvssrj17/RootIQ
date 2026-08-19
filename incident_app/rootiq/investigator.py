@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import json
 
 from .evidence import EvidenceCollector
@@ -79,29 +80,31 @@ INCIDENT EVIDENCE:
                 "raw_response": response
             }
 
-        # 6. Save investigation result
-        incident_dir = (
-            self.collector.project_root
-            / "incidents"
-            / incident_id
-            / "evidence"
-        )
-
-        incident_dir.mkdir(
-            parents=True,
-            exist_ok=True
-        )
-
-        result_path = (
-            incident_dir
-            / "investigation_result.json"
-        )
-
-        with open(result_path, "w") as f:
-            json.dump(
-                analysis,
-                f,
-                indent=2
+        # 6. Save investigation result when running
+        # in a writable local environment.
+        if os.getenv("VERCEL") != "1":
+            incident_dir = (
+                self.collector.project_root
+                / "incidents"
+                / incident_id
+                / "evidence"
             )
+
+            incident_dir.mkdir(
+                parents=True,
+                exist_ok=True
+            )
+
+            result_path = (
+                incident_dir
+                / "investigation_result.json"
+            )
+
+            with open(result_path, "w") as f:
+                json.dump(
+                    analysis,
+                    f,
+                    indent=2
+                )
 
         return analysis
